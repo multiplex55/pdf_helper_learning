@@ -113,9 +113,20 @@ The repository ships without the actual font files; add
 integration tests.  See `assets/fonts/README.md` for a quick reminder when
 setting up a local checkout or bundling the fonts alongside your binaries.
 
+If none of the Roboto assets can be found the library attempts to load the
+Windows 11 Arial family instead (`arial.ttf`, `arialbd.ttf`, `ariali.ttf`,
+`arialbi.ttf`).  The helper checks the `PDF_HELPER_WINDOWS_FONTS_DIR`
+environment variable first and, when running on Windows, falls back to the
+standard `%WINDIR%\Fonts` directory.  A warning is emitted through the `log`
+facade whenever the fallback activates so consumers can provision the preferred
+Roboto family when desired.
+
 ## Testing
 
 Run `cargo test` to execute unit tests, integration tests, and documentation
 examples.  The integration tests render small PDFs, verify that the output is
 non-empty, and confirm deterministic rendering by hashing the produced bytes;
-they skip automatically when the bundled fonts are not present.
+they isolate the font search paths during setup so the fallback path is
+exercised when the Roboto assets are missing.  When neither Roboto nor the
+configured Windows fonts are available (e.g., on non-Windows CI) the tests skip
+the rendering assertions with a note explaining the missing fonts.

@@ -1,24 +1,109 @@
-use pdf_helper_learning::builder::PdfBuilder;
+use pdf_helper_learning::builder::{PdfBuildError, PdfBuilder};
 use pdf_helper_learning::fonts;
 use pdf_helper_learning::model::{Block, Section};
 use pdf_helper_learning::richtext::Span;
 use sha2::{Digest, Sha256};
+use std::env;
+use std::ffi::OsString;
+use std::fs;
+use std::path::PathBuf;
+use std::sync::{Mutex, MutexGuard, OnceLock};
+
+static FONT_ENV_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+
+struct FontSearchGuard {
+    original_env: Option<OsString>,
+    original_windows_env: Option<OsString>,
+    renamed_dir: Option<(PathBuf, PathBuf)>,
+    lock: Option<MutexGuard<'static, ()>>,
+}
+
+impl FontSearchGuard {
+    fn isolate() -> Self {
+        let lock = FONT_ENV_LOCK
+            .get_or_init(|| Mutex::new(()))
+            .lock()
+            .expect("font isolation mutex poisoned");
+        let original_env = env::var_os("PDF_HELPER_FONTS_DIR");
+        env::set_var(
+            "PDF_HELPER_FONTS_DIR",
+            "/__pdf_helper_learning_missing_fonts__",
+        );
+
+        let original_windows_env = env::var_os("PDF_HELPER_WINDOWS_FONTS_DIR");
+        env::set_var(
+            "PDF_HELPER_WINDOWS_FONTS_DIR",
+            "/__pdf_helper_learning_missing_windows_fonts__",
+        );
+
+        let manifest_fonts = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("assets/fonts");
+        let renamed_dir = if manifest_fonts.exists() {
+            let backup = manifest_fonts.with_file_name("fonts.test-backup");
+            if backup.exists() {
+                panic!(
+                    "temporary fonts backup {} already exists; remove it before running tests",
+                    backup.display()
+                );
+            }
+            fs::rename(&manifest_fonts, &backup)
+                .expect("failed to isolate manifest fonts directory for testing");
+            Some((backup, manifest_fonts))
+        } else {
+            None
+        };
+
+        Self {
+            original_env,
+            original_windows_env,
+            renamed_dir,
+            lock: Some(lock),
+        }
+    }
+}
+
+impl Drop for FontSearchGuard {
+    fn drop(&mut self) {
+        if let Some((backup, original)) = self.renamed_dir.take() {
+            // Restore the manifest fonts directory; failures should surface loudly in subsequent
+            // tests, so ignore the result here.
+            let _ = fs::rename(&backup, &original);
+        }
+
+        match self.original_env.take() {
+            Some(value) => env::set_var("PDF_HELPER_FONTS_DIR", value),
+            None => env::remove_var("PDF_HELPER_FONTS_DIR"),
+        }
+
+        match self.original_windows_env.take() {
+            Some(value) => env::set_var("PDF_HELPER_WINDOWS_FONTS_DIR", value),
+            None => env::remove_var("PDF_HELPER_WINDOWS_FONTS_DIR"),
+        }
+
+        self.lock.take();
+    }
+}
 
 fn render_sample_pdf() -> Option<Vec<u8>> {
-    if !fonts::default_fonts_available() {
-        return None;
-    }
+    let _guard = FontSearchGuard::isolate();
+    assert!(
+        !fonts::default_fonts_available(),
+        "Bundled fonts unexpectedly available; the fallback path is not exercised"
+    );
 
-    let bytes = PdfBuilder::new()
+    match PdfBuilder::new()
         .add_section(
             Section::new("Sample")
                 .with_block(Block::paragraph(vec![Span::new("Hello, PDF!").bold()])),
         )
         .render()
-        .expect("render sample pdf")
-        .bytes;
-
-    Some(bytes)
+    {
+        Ok(result) => Some(result.bytes),
+        Err(PdfBuildError::FontLoad(err)) => {
+            eprintln!("Skipping rendering fallback assertions: {}", err);
+            None
+        }
+        Err(other) => panic!("render sample pdf: {other}"),
+    }
 }
 
 fn scrub_pdf(bytes: &[u8]) -> Vec<u8> {
@@ -108,9 +193,6 @@ fn normalized_hash(bytes: &[u8]) -> [u8; 32] {
 #[test]
 fn renders_non_empty_output() {
     let Some(bytes) = render_sample_pdf() else {
-        eprintln!(
-            "Skipping renders_non_empty_output: bundled fonts missing. Set PDF_HELPER_FONTS_DIR or copy assets/fonts next to the binary."
-        );
         return;
     };
     assert!(
@@ -122,15 +204,9 @@ fn renders_non_empty_output() {
 #[test]
 fn rendering_is_deterministic() {
     let Some(bytes_a) = render_sample_pdf() else {
-        eprintln!(
-            "Skipping rendering_is_deterministic: bundled fonts missing. Set PDF_HELPER_FONTS_DIR or copy assets/fonts next to the binary."
-        );
         return;
     };
     let Some(bytes_b) = render_sample_pdf() else {
-        eprintln!(
-            "Skipping rendering_is_deterministic: bundled fonts missing. Set PDF_HELPER_FONTS_DIR or copy assets/fonts next to the binary."
-        );
         return;
     };
 

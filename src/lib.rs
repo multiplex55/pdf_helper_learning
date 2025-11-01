@@ -47,6 +47,12 @@
 //! binary, and finally `assets/fonts` in the crate source tree.  The repository keeps the directory
 //! structure but omits the actual `.ttf` files; add the regular, bold, italic, and bold italic
 //! variants to one of those locations before running the examples or integration tests.
+//!
+//! If none of the Roboto assets are available the crate attempts to load the Arial family that
+//! ships with Windows 11 (`arial.ttf`, `arialbd.ttf`, `ariali.ttf`, `arialbi.ttf`).  The loader
+//! checks the `PDF_HELPER_WINDOWS_FONTS_DIR` environment variable first and, on Windows hosts,
+//! falls back to `%WINDIR%\Fonts`.  A warning is emitted through the `log` facade whenever the
+//! fallback is activated so consumers can provision the preferred Roboto family when desired.
 
 pub mod builder;
 pub mod elements;
