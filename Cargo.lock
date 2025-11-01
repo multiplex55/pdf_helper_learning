@@ -671,6 +671,7 @@ dependencies = [
  "genpdf",
  "hyphenation",
  "image",
+ "log",
  "lopdf 0.31.0",
  "printpdf",
  "sha2",
