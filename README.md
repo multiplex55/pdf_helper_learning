@@ -98,12 +98,20 @@ bespoke layouts.
 
 ## Fonts
 
-The helper API expects the Roboto font family to live in
-`assets/fonts`.  The repository ships without the actual font files; add
+The helper API expects the Roboto font family to be available at runtime.  The
+search order is:
+
+1. The directory pointed to by the `PDF_HELPER_FONTS_DIR` environment variable.
+2. `assets/fonts` next to the compiled binary (copy this directory when
+   packaging your application).
+3. `assets/fonts` in the crate source tree (convenient for `cargo run` during
+   development).
+
+The repository ships without the actual font files; add
 `Roboto-Regular.ttf`, `Roboto-Bold.ttf`, `Roboto-Italic.ttf`, and
-`Roboto-BoldItalic.ttf` to that directory (or adjust your configuration) before
-running the examples or integration tests.  See `assets/fonts/README.md` for a
-quick reminder when setting up a local checkout.
+`Roboto-BoldItalic.ttf` to one of those locations before running the examples or
+integration tests.  See `assets/fonts/README.md` for a quick reminder when
+setting up a local checkout or bundling the fonts alongside your binaries.
 
 ## Testing
 

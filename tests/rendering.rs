@@ -109,7 +109,7 @@ fn normalized_hash(bytes: &[u8]) -> [u8; 32] {
 fn renders_non_empty_output() {
     let Some(bytes) = render_sample_pdf() else {
         eprintln!(
-            "Skipping renders_non_empty_output: bundled fonts missing. See assets/fonts/README.md."
+            "Skipping renders_non_empty_output: bundled fonts missing. Set PDF_HELPER_FONTS_DIR or copy assets/fonts next to the binary."
         );
         return;
     };
@@ -123,13 +123,13 @@ fn renders_non_empty_output() {
 fn rendering_is_deterministic() {
     let Some(bytes_a) = render_sample_pdf() else {
         eprintln!(
-            "Skipping rendering_is_deterministic: bundled fonts missing. See assets/fonts/README.md."
+            "Skipping rendering_is_deterministic: bundled fonts missing. Set PDF_HELPER_FONTS_DIR or copy assets/fonts next to the binary."
         );
         return;
     };
     let Some(bytes_b) = render_sample_pdf() else {
         eprintln!(
-            "Skipping rendering_is_deterministic: bundled fonts missing. See assets/fonts/README.md."
+            "Skipping rendering_is_deterministic: bundled fonts missing. Set PDF_HELPER_FONTS_DIR or copy assets/fonts next to the binary."
         );
         return;
     };

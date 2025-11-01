@@ -42,9 +42,11 @@
 //!
 //! ## Fonts
 //!
-//! The helper APIs look for the Roboto font family under `assets/fonts`.  The repository keeps that
-//! directory but omits the actual `.ttf` files; add the regular, bold, italic, and bold italic
-//! variants before running the examples or integration tests.
+//! The helper APIs look for the Roboto font family using the following precedence order: the
+//! `PDF_HELPER_FONTS_DIR` environment variable, an `assets/fonts` directory next to the compiled
+//! binary, and finally `assets/fonts` in the crate source tree.  The repository keeps the directory
+//! structure but omits the actual `.ttf` files; add the regular, bold, italic, and bold italic
+//! variants to one of those locations before running the examples or integration tests.
 
 pub mod builder;
 pub mod elements;
