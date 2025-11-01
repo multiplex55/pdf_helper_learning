@@ -1,0 +1,2 @@
+[alias]
+run-all-examples = "run --example run_all"
