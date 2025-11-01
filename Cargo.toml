@@ -18,6 +18,7 @@ hyphenation = ["dep:hyphenation"]
 
 [dependencies]
 genpdf = { version = "0.2.0", features = ["images"] }
-image = "0.24"
+image = "0.23"
 lopdf = { version = "0.31", optional = true }
 hyphenation = { version = "0.8", optional = true }
+printpdf = "0.3"
