@@ -98,7 +98,7 @@ fn collect_outline_entries(
     document: &mut Document,
     sections: &[Section],
     section_pages: &[Option<usize>],
-    pages: &BTreeMap<u32, (ObjectId, Dictionary)>,
+    pages: &BTreeMap<u32, ObjectId>,
 ) -> Result<Vec<OutlineEntry>, BookmarkError> {
     let mut entries = Vec::new();
 
@@ -107,8 +107,9 @@ fn collect_outline_entries(
             continue;
         };
         let page_number_u32 = page_number as u32;
-        let (page_ref, _) = pages
+        let page_ref = pages
             .get(&page_number_u32)
+            .copied()
             .ok_or(BookmarkError::MissingPage {
                 section_index: index,
                 page_number,
@@ -116,7 +117,7 @@ fn collect_outline_entries(
 
         entries.push(OutlineEntry {
             object_id: document.new_object_id(),
-            page_ref: *page_ref,
+            page_ref,
             title: section.title().to_string(),
             name: section.identifier().map(|value| value.to_string()),
         });
