@@ -133,7 +133,10 @@ fn link_outline_entries(
 ) {
     for index in 0..entries.len() {
         let mut dictionary = Dictionary::new();
-        dictionary.set("Title", Object::string_literal(&entries[index].title));
+        dictionary.set(
+            "Title",
+            Object::string_literal(entries[index].title.as_str()),
+        );
         dictionary.set(
             "Dest",
             Object::Array(vec![
@@ -144,7 +147,7 @@ fn link_outline_entries(
         dictionary.set("Parent", Object::Reference(outlines_id));
 
         if let Some(name) = &entries[index].name {
-            dictionary.set("NM", Object::string_literal(name));
+            dictionary.set("NM", Object::string_literal(name.as_str()));
         }
 
         if index > 0 {
