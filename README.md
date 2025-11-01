@@ -95,6 +95,15 @@ bespoke layouts.
   paragraphs, images, and a printed table of contents.
 * `cargo run --example report_bookmarks --features bookmarks` runs the same
   workflow but augments the output with navigable section bookmarks.
+* `cargo run --example run_all` renders both variants in
+  `target/run_all_examples/`, skipping the bookmarks pass when the feature is
+  disabled.
+* `cargo run --example run_all --features bookmarks` generates the same
+  directory but includes the bookmarks-enhanced PDF alongside the standard
+  render.
+
+For convenience you can also execute `cargo run-all-examples` (and append
+`--features bookmarks` when desired) which forwards to the combined example.
 
 ## Fonts
 
