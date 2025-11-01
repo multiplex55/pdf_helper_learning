@@ -4,6 +4,8 @@ use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
 
+#[cfg(feature = "bookmarks")]
+use crate::bookmarks;
 use crate::elements::CaptionedImage;
 use crate::fonts;
 use crate::model::{
@@ -278,6 +280,9 @@ pub enum PdfBuildError {
     Content { message: String, source: Error },
     /// Failure reported by `genpdf` when rendering the final document.
     Render(Error),
+    /// Failure while embedding bookmarks into the rendered PDF document.
+    #[cfg(feature = "bookmarks")]
+    Bookmarks(bookmarks::BookmarkError),
     /// Hyphenation was requested but no dictionary could be loaded.
     HyphenationUnavailable { language: &'static str },
     /// Hyphenation dictionary failed to load from the embedded resources.
@@ -303,6 +308,8 @@ impl fmt::Display for PdfBuildError {
             Self::FontLoad(err) => write!(f, "Failed to load fonts: {}", err),
             Self::Content { message, .. } => write!(f, "{}", message),
             Self::Render(err) => write!(f, "Failed to render PDF: {}", err),
+            #[cfg(feature = "bookmarks")]
+            Self::Bookmarks(err) => write!(f, "Failed to apply bookmarks: {}", err),
             Self::HyphenationUnavailable { language } => write!(
                 f,
                 "Hyphenation requested for language {} but the feature is not available",
@@ -321,6 +328,8 @@ impl std::error::Error for PdfBuildError {
         match self {
             Self::FontLoad(err) | Self::Render(err) => Some(err),
             Self::Content { source, .. } => Some(source),
+            #[cfg(feature = "bookmarks")]
+            Self::Bookmarks(err) => Some(err),
             Self::HyphenationUnavailable { .. } => None,
             #[cfg(feature = "hyphenation")]
             Self::HyphenationLoad { source, .. } => Some(source),
@@ -499,6 +508,22 @@ impl PdfBuilder {
             bytes,
             section_start_pages,
         })
+    }
+
+    /// Renders the PDF document and augments it with section bookmarks when the
+    /// `bookmarks` feature is enabled.
+    #[cfg(feature = "bookmarks")]
+    pub fn render_with_bookmarks(mut self) -> Result<PdfRenderResult, PdfBuildError> {
+        let sections = self.sections.clone();
+        self.collect_section_pages = true;
+        let mut result = self.render()?;
+        result.bytes = bookmarks::apply_section_bookmarks(
+            &result.bytes,
+            &sections,
+            &result.section_start_pages,
+        )
+        .map_err(PdfBuildError::Bookmarks)?;
+        Ok(result)
     }
 
     fn render_internal(
