@@ -103,7 +103,7 @@ fn collect_outline_entries(
     let mut entries = Vec::new();
 
     for (index, (section, maybe_page)) in sections.iter().zip(section_pages.iter()).enumerate() {
-        let Some(page_number) = maybe_page.copied() else {
+        let Some(page_number) = *maybe_page else {
             continue;
         };
         let page_number_u32 = page_number as u32;
