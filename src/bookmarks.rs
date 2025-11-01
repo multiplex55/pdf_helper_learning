@@ -30,6 +30,12 @@ impl From<lopdf::Error> for BookmarkError {
     }
 }
 
+impl From<std::io::Error> for BookmarkError {
+    fn from(err: std::io::Error) -> Self {
+        Self::Parse(err.into())
+    }
+}
+
 impl std::fmt::Display for BookmarkError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -83,7 +89,7 @@ pub fn apply_section_bookmarks(
     insert_outlines_root(outlines_id, &mut document, &outline_entries)?;
 
     let mut buffer = Vec::new();
-    document.save_to(&mut buffer)?;
+    document.save_to(&mut buffer).map_err(BookmarkError::from)?;
     Ok(buffer)
 }
 
