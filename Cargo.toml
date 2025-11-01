@@ -22,3 +22,6 @@ image = "0.23"
 lopdf = { version = "0.31", optional = true }
 hyphenation = { version = "0.8", optional = true }
 printpdf = "0.3"
+
+[dev-dependencies]
+sha2 = "0.10"
