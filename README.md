@@ -33,6 +33,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
+For a deeper tour of the API surface and advanced configuration patterns, see
+the [pdf_helper guide](crates/pdf_helper/GUIDE.md).
+
 ## Builder workflow
 
 1. **Describe the content** using [`Cover`](crates/pdf_helper/src/model.rs) and [`Section`](crates/pdf_helper/src/model.rs)

@@ -61,5 +61,8 @@ pub mod fonts;
 pub mod model;
 pub mod richtext;
 
+#[doc = include_str!("../GUIDE.md")]
+pub mod guide {}
+
 #[cfg(feature = "bookmarks")]
 pub mod bookmarks;
