@@ -1,28 +1,6 @@
-[package]
-name = "pdf_helper_learning"
-version = "0.1.0"
-edition = "2021"
-rust-version = "1.70"
-description = "Helper utilities for building PDF documents with genpdf."
-license = "MIT OR Apache-2.0"
-categories = ["text-processing"]
-keywords = ["pdf", "generator", "documents"]
-
-[lib]
-path = "src/lib.rs"
-
-[features]
-default = []
-bookmarks = ["dep:lopdf"]
-hyphenation = ["dep:hyphenation"]
-
-[dependencies]
-genpdf = { version = "0.2.0", features = ["images"] }
-image = "0.23"
-lopdf = { version = "0.31", optional = true }
-hyphenation = { version = "0.8", optional = true }
-printpdf = "0.3"
-log = "0.4"
-
-[dev-dependencies]
-sha2 = "0.10"
+[workspace]
+members = [
+    "crates/pdf_helper",
+    "crates/main",
+]
+resolver = "2"

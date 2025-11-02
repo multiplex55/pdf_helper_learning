@@ -9,14 +9,14 @@
 //! # Examples
 //!
 //! ```no_run
-//! use pdf_helper_learning::builder::PdfBuilder;
-//! use pdf_helper_learning::model::{Block, Cover, Section};
-//! use pdf_helper_learning::richtext::Span;
+//! use pdf_helper::builder::PdfBuilder;
+//! use pdf_helper::model::{Block, Cover, Section};
+//! use pdf_helper::richtext::Span;
 //!
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! let cover = Cover::new("Sample Report").with_block(Block::paragraph(vec![
 //!     Span::new("Prepared by ").italic(),
-//!     Span::new("pdf_helper_learning").bold(),
+//!     Span::new("pdf_helper").bold(),
 //! ]));
 //!
 //! let section = Section::new("Highlights").with_block(Block::paragraph(vec![
@@ -59,6 +59,7 @@ pub mod elements;
 pub mod fonts;
 pub mod model;
 pub mod richtext;
+pub mod examples;
 
 #[cfg(feature = "bookmarks")]
 pub mod bookmarks;

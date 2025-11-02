@@ -1,4 +1,4 @@
-//! Font loading utilities for the pdf_helper_learning crate.
+//! Font loading utilities for the `pdf_helper` crate.
 
 use std::env;
 use std::io;

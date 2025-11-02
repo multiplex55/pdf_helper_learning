@@ -1,7 +1,7 @@
-use pdf_helper_learning::builder::{PdfBuildError, PdfBuilder};
-use pdf_helper_learning::fonts;
-use pdf_helper_learning::model::{Block, Section};
-use pdf_helper_learning::richtext::Span;
+use pdf_helper::builder::{PdfBuildError, PdfBuilder};
+use pdf_helper::fonts;
+use pdf_helper::model::{Block, Section};
+use pdf_helper::richtext::Span;
 use sha2::{Digest, Sha256};
 use std::env;
 use std::ffi::OsString;
@@ -25,15 +25,12 @@ impl FontSearchGuard {
             .lock()
             .expect("font isolation mutex poisoned");
         let original_env = env::var_os("PDF_HELPER_FONTS_DIR");
-        env::set_var(
-            "PDF_HELPER_FONTS_DIR",
-            "/__pdf_helper_learning_missing_fonts__",
-        );
+        env::set_var("PDF_HELPER_FONTS_DIR", "/__pdf_helper_missing_fonts__");
 
         let original_windows_env = env::var_os("PDF_HELPER_WINDOWS_FONTS_DIR");
         env::set_var(
             "PDF_HELPER_WINDOWS_FONTS_DIR",
-            "/__pdf_helper_learning_missing_windows_fonts__",
+            "/__pdf_helper_missing_windows_fonts__",
         );
 
         let manifest_fonts = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("assets/fonts");
