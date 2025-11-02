@@ -180,7 +180,7 @@ fn insert_outlines_root(
         .get(b"Root")
         .map_err(|_| BookmarkError::MissingCatalog)?
         .as_reference()
-        .ok_or(BookmarkError::MissingCatalog)?;
+        .map_err(|_| BookmarkError::MissingCatalog)?;
 
     let catalog = document
         .objects
