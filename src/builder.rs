@@ -3,6 +3,7 @@
 use std::cell::RefCell;
 use std::fmt;
 use std::rc::Rc;
+use std::sync::Arc;
 
 #[cfg(feature = "bookmarks")]
 use crate::bookmarks;
@@ -68,6 +69,10 @@ pub struct DocumentBuilder {
 type HeaderFactory = dyn Fn(usize) -> Box<dyn Element>;
 
 type FooterFactory = dyn Fn(usize) -> Box<dyn Element>;
+
+type SharedHeaderFactory = Arc<dyn Fn(usize) -> BoxedElement>;
+
+type SharedFooterFactory = Arc<dyn Fn(usize) -> BoxedElement>;
 
 impl DocumentBuilder {
     /// Creates a new builder instance with default settings.
@@ -347,12 +352,13 @@ pub struct PdfRenderResult {
 }
 
 /// Builder responsible for turning [`Cover`] and [`Section`] definitions into rendered PDFs.
-#[derive(Debug)]
 pub struct PdfBuilder {
     paper_size: Option<Size>,
     margins: Option<Margins>,
     show_header: bool,
     show_footer: bool,
+    custom_header: Option<SharedHeaderFactory>,
+    custom_footer: Option<FooterConfig>,
     enable_hyphenation: bool,
     cover: Option<Cover>,
     sections: Vec<Section>,
@@ -370,6 +376,8 @@ impl Default for PdfBuilder {
             margins: None,
             show_header: false,
             show_footer: false,
+            custom_header: None,
+            custom_footer: None,
             enable_hyphenation: false,
             cover: None,
             sections: Vec::new(),
@@ -409,6 +417,28 @@ impl PdfBuilder {
     /// Controls whether the default footer with page numbers is printed.
     pub fn show_footer(mut self, show: bool) -> Self {
         self.show_footer = show;
+        self
+    }
+
+    /// Installs a custom header renderer that is invoked for every page.
+    pub fn with_header<F, E>(mut self, header: F) -> Self
+    where
+        F: Fn(usize) -> E + 'static,
+        E: Element + 'static,
+    {
+        self.custom_header = Some(Arc::new(move |page| {
+            BoxedElement::new(Box::new(header(page)))
+        }));
+        self
+    }
+
+    /// Installs a custom footer renderer with an explicit height measured in millimetres.
+    pub fn with_footer<F, E>(mut self, height_mm: f64, footer: F) -> Self
+    where
+        F: Fn(usize) -> E + 'static,
+        E: Element + 'static,
+    {
+        self.custom_footer = Some(FooterConfig::new(height_mm, footer));
         self
     }
 
@@ -566,7 +596,10 @@ impl PdfBuilder {
             }
         }
 
-        if self.show_header {
+        if let Some(header_cb) = &self.custom_header {
+            let header_cb = Arc::clone(header_cb);
+            builder = builder.with_header(move |page| header_cb(page));
+        } else if self.show_header {
             if let Some(title) = self.cover.as_ref().map(|cover| cover.title().to_string()) {
                 let header_text = title.clone();
                 builder = builder.with_header(move |_| {
@@ -577,7 +610,11 @@ impl PdfBuilder {
             }
         }
 
-        if self.show_footer {
+        if let Some(footer) = &self.custom_footer {
+            let height = footer.height;
+            let footer_cb = Arc::clone(&footer.factory);
+            builder = builder.with_footer(height, move |page| footer_cb(page));
+        } else if self.show_footer {
             builder = builder.with_footer(mm_from_f64(12.0), |page| {
                 let mut paragraph = Paragraph::new(format!("Page {}", page));
                 paragraph.set_alignment(Alignment::Right);
@@ -813,6 +850,69 @@ impl PdfBuilder {
     }
 }
 
+impl fmt::Debug for PdfBuilder {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("PdfBuilder")
+            .field("paper_size", &self.paper_size)
+            .field("margins", &self.margins)
+            .field("show_header", &self.show_header)
+            .field("show_footer", &self.show_footer)
+            .field("custom_header", &self.custom_header.is_some())
+            .field(
+                "custom_footer_height",
+                &self.custom_footer.as_ref().map(|config| config.height),
+            )
+            .field("enable_hyphenation", &self.enable_hyphenation)
+            .field("cover", &self.cover)
+            .field("sections", &self.sections)
+            .field("include_toc", &self.include_toc)
+            .field("toc_title", &self.toc_title)
+            .field("default_alignment", &self.default_alignment)
+            .field("render_section_headings", &self.render_section_headings)
+            .field("collect_section_pages", &self.collect_section_pages)
+            .finish()
+    }
+}
+
 fn mm_from_f64(value: f64) -> Mm {
     Mm::from(printpdf::Mm(value))
+}
+
+struct BoxedElement {
+    inner: Box<dyn Element>,
+}
+
+impl BoxedElement {
+    fn new(inner: Box<dyn Element>) -> Self {
+        Self { inner }
+    }
+}
+
+impl Element for BoxedElement {
+    fn render(
+        &mut self,
+        context: &genpdf::Context,
+        area: genpdf::render::Area<'_>,
+        style: Style,
+    ) -> Result<genpdf::RenderResult, Error> {
+        self.inner.render(context, area, style)
+    }
+}
+
+struct FooterConfig {
+    height: Mm,
+    factory: SharedFooterFactory,
+}
+
+impl FooterConfig {
+    fn new<F, E>(height_mm: f64, footer: F) -> Self
+    where
+        F: Fn(usize) -> E + 'static,
+        E: Element + 'static,
+    {
+        Self {
+            height: mm_from_f64(height_mm),
+            factory: Arc::new(move |page| BoxedElement::new(Box::new(footer(page)))),
+        }
+    }
 }
