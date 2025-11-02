@@ -21,6 +21,11 @@ const FONT_FILES: &[&str] = &[
 
 const WINDOWS_FALLBACK_FAMILY_NAME: &str = "Arial";
 
+/// Path to the bundled fonts directory inside the crate source tree.
+pub fn bundled_fonts_source_dir() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("assets/fonts")
+}
+
 struct WindowsFontFiles {
     regular: &'static str,
     bold: &'static str,
@@ -53,7 +58,7 @@ fn font_directory_candidates() -> Vec<PathBuf> {
         }
     }
 
-    let manifest_candidate = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("assets/fonts");
+    let manifest_candidate = bundled_fonts_source_dir();
     if !candidates
         .iter()
         .any(|existing| existing == &manifest_candidate)

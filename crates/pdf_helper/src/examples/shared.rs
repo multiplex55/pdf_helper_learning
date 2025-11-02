@@ -1,15 +1,15 @@
 use std::error::Error;
 use std::io::Cursor;
 
-use genpdf::elements::{LinearLayout, Paragraph};
-use genpdf::style::Color;
-use genpdf::Alignment;
-use image::{DynamicImage, ImageBuffer, ImageOutputFormat, Rgb};
 use crate::builder::PdfBuilder;
 use crate::model::{
     Block, Cover, HorizontalAlignment, ImageBlock, ImageSource, RichParagraph, Section,
 };
 use crate::richtext::Span;
+use genpdf::elements::{LinearLayout, Paragraph};
+use genpdf::style::Color;
+use genpdf::Alignment;
+use image::{DynamicImage, ImageBuffer, ImageOutputFormat, Rgb};
 
 /// Standard width (in millimetres) applied to the hero image so the cover and
 /// first section share a consistent focal point.

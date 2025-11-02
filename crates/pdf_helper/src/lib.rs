@@ -56,10 +56,10 @@
 
 pub mod builder;
 pub mod elements;
+pub mod examples;
 pub mod fonts;
 pub mod model;
 pub mod richtext;
-pub mod examples;
 
 #[cfg(feature = "bookmarks")]
 pub mod bookmarks;
