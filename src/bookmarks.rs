@@ -182,13 +182,6 @@ fn insert_outlines_root(
         .as_reference()
         .map_err(|_| BookmarkError::MissingCatalog)?;
 
-    let catalog = document
-        .objects
-        .get_mut(&catalog_id)
-        .ok_or(BookmarkError::MissingCatalog)?
-        .as_dict_mut()
-        .map_err(|_| BookmarkError::InvalidCatalog)?;
-
     let mut dictionary = Dictionary::new();
     dictionary.set("Type", Object::Name("Outlines".into()));
     dictionary.set("Count", Object::Integer(entries.len() as i64));
@@ -202,6 +195,13 @@ fn insert_outlines_root(
     document
         .objects
         .insert(outlines_id, Object::Dictionary(dictionary));
+
+    let catalog = document
+        .objects
+        .get_mut(&catalog_id)
+        .ok_or(BookmarkError::MissingCatalog)?
+        .as_dict_mut()
+        .map_err(|_| BookmarkError::InvalidCatalog)?;
 
     catalog.set("Outlines", Object::Reference(outlines_id));
 
