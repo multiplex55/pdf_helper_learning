@@ -8,6 +8,9 @@ license = "MIT OR Apache-2.0"
 categories = ["text-processing"]
 keywords = ["pdf", "generator", "documents"]
 
+[package.metadata.docs.rs]
+additional-files = ["GUIDE.md"]
+
 [lib]
 path = "src/lib.rs"
 
