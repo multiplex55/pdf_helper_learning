@@ -5,11 +5,11 @@ use genpdf::elements::{LinearLayout, Paragraph};
 use genpdf::style::Color;
 use genpdf::Alignment;
 use image::{DynamicImage, ImageBuffer, ImageOutputFormat, Rgb};
-use pdf_helper_learning::builder::PdfBuilder;
-use pdf_helper_learning::model::{
+use crate::builder::PdfBuilder;
+use crate::model::{
     Block, Cover, HorizontalAlignment, ImageBlock, ImageSource, RichParagraph, Section,
 };
-use pdf_helper_learning::richtext::Span;
+use crate::richtext::Span;
 
 /// Standard width (in millimetres) applied to the hero image so the cover and
 /// first section share a consistent focal point.

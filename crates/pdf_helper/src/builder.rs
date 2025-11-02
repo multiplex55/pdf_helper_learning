@@ -1,4 +1,4 @@
-//! Document construction helpers for the pdf_helper_learning crate.
+//! Document construction helpers for the `pdf_helper` crate.
 
 use std::cell::RefCell;
 use std::fmt;
