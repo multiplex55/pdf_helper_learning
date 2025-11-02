@@ -1,5 +1,5 @@
 use pdf_helper::builder::{PdfBuildError, PdfBuilder};
-use pdf_helper::fonts;
+use pdf_helper::fonts::{self, bundled_fonts_source_dir};
 use pdf_helper::model::{Block, Section};
 use pdf_helper::richtext::Span;
 use sha2::{Digest, Sha256};
@@ -33,7 +33,7 @@ impl FontSearchGuard {
             "/__pdf_helper_missing_windows_fonts__",
         );
 
-        let manifest_fonts = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("assets/fonts");
+        let manifest_fonts = bundled_fonts_source_dir();
         let renamed_dir = if manifest_fonts.exists() {
             let backup = manifest_fonts.with_file_name("fonts.test-backup");
             if backup.exists() {
